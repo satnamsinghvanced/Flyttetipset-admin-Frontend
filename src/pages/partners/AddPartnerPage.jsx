@@ -38,14 +38,15 @@ export const AddPartnerPage = () => {
         console.error("Error fetching questions:", err);
       });
   }, []);
+
   useEffect(() => {
     axios
       .get(`${import.meta.env.VITE_API_URL}/form-select`)
       .then((res) => {
         const list = res.data?.data || [];
-        setLeadTypesList(list);
+        setLeadTypes(list);
 
-        const defaultLeadTypes = list.slice(0, 2).map((type) => ({
+        const defaultLeadTypes = list.map((type) => ({
           typeId: type._id,
           formTitle: type.formTitle,
           price: type.price || 0,
@@ -468,13 +469,17 @@ export const AddPartnerPage = () => {
 
                 {/* Expected Answer */}
                 {wish.options && wish.options.length > 1 ? (
-                   <MultiSelect
-    options={wish.options}
-    value={Array.isArray(wish.expectedAnswer) ? wish.expectedAnswer : []}
-    onChange={(selectedValues) =>
-      handleWishChange(index, "expectedAnswer", selectedValues)
-    }
-  />
+                  <MultiSelect
+                    options={wish.options}
+                    value={
+                      Array.isArray(wish.expectedAnswer)
+                        ? wish.expectedAnswer
+                        : []
+                    }
+                    onChange={(selectedValues) =>
+                      handleWishChange(index, "expectedAnswer", selectedValues)
+                    }
+                  />
                 ) : (
                   <input
                     type="text"
