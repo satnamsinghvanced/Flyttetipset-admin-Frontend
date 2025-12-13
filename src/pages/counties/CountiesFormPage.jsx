@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
@@ -34,18 +34,31 @@ const CountiesFormPage = () => {
     loading: citiesLoading,
     selectedCounty,
   } = useSelector((state) => state.counties || {});
+  const { allCompanies } = useSelector((state) => state.companies);
 
   const [form, setForm] = useState({
     name: "",
     slug: "",
     excerpt: "",
     icon: "",
+    companies: [],
   });
   const [imageFile, setImageFile] = useState(null);
   const [previewImage, setPreviewImage] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
+  const [showCompaniesDropdown, setShowCompaniesDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setShowCompaniesDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   useEffect(() => {
     if (isEditMode && countyId) dispatch(getCountyById(countyId));
     else dispatch(clearSelectedCounty());
@@ -60,6 +73,13 @@ const CountiesFormPage = () => {
         name: selectedCounty.name || "",
         slug: selectedCounty.slug || "",
         excerpt: selectedCounty.excerpt || "",
+        companies: Array.isArray(selectedCounty.companies)
+          ? selectedCounty.companies.map((c, index) => ({
+              companyId: String(c.companyId._id || c.companyId),
+              rank: c.rank ?? index + 1,
+              isRecommended: !!c.isRecommended,
+            }))
+          : [],
       });
       setPreviewImage(selectedCounty.icon || "");
     }
@@ -106,6 +126,11 @@ const CountiesFormPage = () => {
       slug: form.slug?.trim() || "",
       excerpt: form.excerpt?.trim() || "",
       icon: form.icon || "",
+      companies: form.companies.map((c, index) => ({
+        companyId: c.companyId,
+        rank: index + 1,
+        isRecommended: c.isRecommended,
+      })),
     };
 
     return payload;
@@ -216,9 +241,179 @@ const CountiesFormPage = () => {
               </div>
             ))}
           </div>
+          <div ref={dropdownRef}>
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Companies <span className="text-red-500">*</span>
+            </label>
+
+            {/* Trigger Button */}
+            <div
+              className="w-full border border-slate-200 rounded-xl px-3 py-2 mt-1 cursor-pointer"
+              onClick={() => setShowCompaniesDropdown((prev) => !prev)}
+            >
+              {form.companies.length === 0 ? (
+                <span className="text-slate-500 text-sm">Select Companies</span>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {form.companies.map((id) => {
+                    const company = allCompanies.find((c) => c._id === id);
+                    return (
+                      <span
+                        key={id}
+                        className="bg-gray-100 text-slate-700 px-2 py-1 text-xs rounded-lg flex items-center gap-1"
+                      >
+                        {company?.companyName}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setForm((prev) => ({
+                              ...prev,
+                              companies: prev.companies.filter((x) => x !== id),
+                            }));
+                          }}
+                          className="text-blue-700 hover:text-blue-900"
+                        >
+                          ✕
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Dropdown */}
+            {showCompaniesDropdown && (
+              <div className="absolute z-20 mt-2 w-full max-h-64 overflow-y-auto bg-white border rounded-xl shadow">
+                {allCompanies?.map((company) => (
+                  <label
+                    key={company._id}
+                    className="flex items-center gap-2 p-2 hover:bg-slate-100 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      className="!relative"
+                      checked={form.companies.some(
+                        (c) => c.companyId === company._id
+                      )}
+                      onChange={(e) => {
+                        let updated = [...form.companies];
+
+                        if (e.target.checked) {
+                          if (updated.length >= 10) {
+                            toast.info(
+                              "You can select a maximum of 10 companies."
+                            );
+                            return;
+                          }
+                        updated.push({
+                              companyId: company._id,
+                              rank: updated.length + 1,
+                              isRecommended: false,
+                            });
+                          } else {
+                            updated = updated.filter(
+                              (c) => c.companyId !== company._id
+                            );
+                          }
+
+                          setForm((prev) => ({ ...prev, companies: updated }));
+                        }}
+                    />
+                    <span>{company.companyName}</span>
+                    {/* {company.isRecommended && (
+                      <span className="text-red-500">(Recommended)</span>
+                    )} */}
+                  </label>
+                ))}
+              </div>
+            )}
+             <h4 className="font-semibold mt-4">Selected Companies</h4>
+
+              <div className="space-y-2">
+                {form.companies.map((item, index) => {
+                  const company = allCompanies.find(
+                    (c) => c._id === item.companyId
+                  );
+
+                  return (
+                    <div
+                      key={item.companyId}
+                      className="flex items-center justify-between border rounded-lg p-2 bg-slate-50"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium">
+                          {index + 1}. {company?.companyName}
+                        </span>
+
+                        {/* Recommended */}
+                        <label className="flex items-center gap-1 text-xs">
+                          <input
+                            type="checkbox"
+                            className="!relative"
+                            checked={item.isRecommended}
+                            onChange={() => {
+                              const updated = [...form.companies];
+                              updated[index].isRecommended =
+                                !updated[index].isRecommended;
+                              setForm((prev) => ({
+                                ...prev,
+                                companies: updated,
+                              }));
+                            }}
+                          />
+                          Recommended
+                        </label>
+                      </div>
+
+                      {/* Reorder */}
+                      <div className="flex gap-1">
+                        <button
+                          type="button"
+                          disabled={index === 0}
+                          onClick={() => {
+                            const updated = [...form.companies];
+                            [updated[index - 1], updated[index]] = [
+                              updated[index],
+                              updated[index - 1],
+                            ];
+                            setForm((prev) => ({
+                              ...prev,
+                              companies: updated,
+                            }));
+                          }}
+                        >
+                          ↑
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={index === form.companies.length - 1}
+                          onClick={() => {
+                            const updated = [...form.companies];
+                            [updated[index], updated[index + 1]] = [
+                              updated[index + 1],
+                              updated[index],
+                            ];
+                            setForm((prev) => ({
+                              ...prev,
+                              companies: updated,
+                            }));
+                          }}
+                        >
+                          ↓
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+          </div>
+
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm mt-4">
             <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-              Featured image
+              Icon
             </label>
             {previewImage ? (
               <div className="mt-3 rounded-2xl border border-slate-100 bg-slate-50/60 p-3">

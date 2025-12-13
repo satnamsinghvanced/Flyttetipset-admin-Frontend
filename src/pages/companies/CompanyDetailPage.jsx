@@ -96,15 +96,15 @@ const CompanyDetailPage = () => {
                 label: "Website Address",
                 value: selectedCompany.websiteAddress,
               },
-                { label: "isRecommended", value: selectedCompany?.isRecommended },
+                // { label: "isRecommended", value: selectedCompany?.isRecommended },
             ].map((item, i) => (
               <div
                 key={i}
                 className="rounded-xl bg-slate-50 p-4 border border-slate-100"
               >
-                <p className="text-xs font-semibold text-slate-500 tracking-wide uppercase">
+                {/* <p className="text-xs font-semibold text-slate-500 tracking-wide uppercase">
                   {item.label === "isRecommended" ? "isRecommended" : item.label }
-                </p>
+                </p> */}
                 <p className="mt-1 text-sm text-slate-900 font-medium">
                   {item.value === false ? "No" : item.value === true ? "Yes" : item.value|| item.value || "N/A"}
                 </p>

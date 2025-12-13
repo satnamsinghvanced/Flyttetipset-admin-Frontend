@@ -472,7 +472,7 @@ const CompanyFormPage = () => {
             ))}
           </div>
 
-          <div className="md:col-span-2">
+          {/* <div className="md:col-span-2">
             <label
               htmlFor="isRecommended-toggle"
               className="flex items-center cursor-pointer pt-2"
@@ -504,7 +504,7 @@ const CompanyFormPage = () => {
                 Recommended Company
               </span>
             </label>
-          </div>
+          </div> */}
           <div className="mt-4">
             <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
