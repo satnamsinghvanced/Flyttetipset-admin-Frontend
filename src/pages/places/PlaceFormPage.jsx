@@ -141,14 +141,15 @@ const PlaceFormPage = () => {
         excerpt: selectedPlace.excerpt || "",
         title: selectedPlace.title || "",
         description: selectedPlace.description || "",
+        icon: selectedPlace.icon || "",
         // isRecommended: selectedPlace.isRecommended || false,
         rank: selectedPlace.rank || 0,
         companies: Array.isArray(selectedPlace.companies)
           ? selectedPlace.companies.map((c, index) => ({
-              companyId: String(c.companyId._id || c.companyId),
-              rank: c.rank ?? index + 1,
-              isRecommended: !!c.isRecommended,
-            }))
+            companyId: String(c.companyId._id || c.companyId),
+            rank: c.rank ?? index + 1,
+            isRecommended: !!c.isRecommended,
+          }))
           : [],
         metaTitle: selectedPlace.metaTitle || "",
         metaDescription: selectedPlace.metaDescription || "",
@@ -373,10 +374,9 @@ const PlaceFormPage = () => {
                   value={form[field.name] ?? ""}
                   onChange={handleChange}
                   className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm text-slate-900 outline-none transition
-                    ${
-                      errors[field.name]
-                        ? "border-red-400 focus:border-red-500"
-                        : "border-slate-200 focus:border-primary"
+                    ${errors[field.name]
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-slate-200 focus:border-primary"
                     }`}
                 />
                 {errors[field.name] && (
@@ -396,11 +396,10 @@ const PlaceFormPage = () => {
                 value={form.countyId}
                 onChange={handleChange}
                 className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm text-slate-900 outline-none transition
-                    ${
-                      errors.countyId
-                        ? "border-red-400 focus:border-red-500"
-                        : "border-slate-200 focus:border-primary"
-                    }`}
+                    ${errors.countyId
+                    ? "border-red-400 focus:border-red-500"
+                    : "border-slate-200 focus:border-primary"
+                  }`}
               >
                 <option value="">Select County</option>
                 {counties?.map((c) => (
@@ -880,8 +879,8 @@ const PlaceFormPage = () => {
               {submitting
                 ? "Saving..."
                 : isEditMode
-                ? "Save Changes"
-                : "Create Place"}
+                  ? "Save Changes"
+                  : "Create Place"}
             </button>
 
             {isDisabled && hasErrors && (
