@@ -60,7 +60,6 @@ export const Company = () => {
     } catch (err) {
       console.error(err);
     }
-    fetchCompanies();
   }, [dispatch, page, limit, search]);
    // Update page when URL changes
   useEffect(() => {
