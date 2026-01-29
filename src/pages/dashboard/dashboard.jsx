@@ -118,7 +118,7 @@ const Dashboard = () => {
     dayjs().startOf("month").format("YYYY-MM-DD")
   );
   const [endDate, setEndDate] = useState(
-    dayjs().endOf("month").format("YYYY-MM-DD")
+    dayjs().format("YYYY-MM-DD")
   );
   const [range, setRange] = useState("");
   const fetchStats = () => {
@@ -222,6 +222,7 @@ const Dashboard = () => {
                 type="date"
                 className="border border-slate-200 p-2 rounded w-full"
                 value={startDate}
+                 max={dayjs().format("YYYY-MM-DD")}
                 onChange={(e) => setStartDate(e.target.value)}
               />
             </div>
@@ -232,6 +233,7 @@ const Dashboard = () => {
                 type="date"
                 className="border border-slate-200 p-2 rounded w-full"
                 value={endDate}
+                max={dayjs().format("YYYY-MM-DD")}
                 onChange={(e) => setEndDate(e.target.value)}
               />
             </div>
