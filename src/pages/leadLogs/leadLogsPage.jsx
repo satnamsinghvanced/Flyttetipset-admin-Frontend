@@ -9,7 +9,7 @@ import {
   updateLeadProfit,
   updateLeadStatus,
 } from "../../store/slices/leadLogsSlice";
-import { useNavigate,useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import Pagination from "../../UI/pagination";
 import { FaRegEye } from "react-icons/fa6";
@@ -18,10 +18,10 @@ import { getForms } from "../../store/slices/formSelectSlice";
 const LeadLogs = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-     const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { leads = [], loading, error, pagination } = useSelector((s) => s.lead);
-      const getInitialPage = () => {
+  const getInitialPage = () => {
     const pageParam = searchParams.get('page');
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
   };
@@ -70,7 +70,7 @@ const LeadLogs = () => {
 
     return () => clearTimeout(delay);
   }, [page, leadSearch, partnerSearch, status, formType]);
-   // Update page when URL changes
+  // Update page when URL changes
   useEffect(() => {
     const pageParam = searchParams.get('page');
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
@@ -120,29 +120,29 @@ const LeadLogs = () => {
   const totalLeads = leads?.length || 0;
   const totalPages = pagination?.pages || 1;
 
-const headerButtons = [
-  {
-    value: csvLoading ? "Downloading..." : "Export All Leads Logs",
-    variant: "primary",
-    className:
-      "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary disabled:opacity-70",
-    disabled: csvLoading,
-    onClick: async () => {
-      try {
-        setCsvLoading(true);
-        await dispatch(exportLeadsCSV()).unwrap();
-      } finally {
-        setCsvLoading(false);
-      }
+  const headerButtons = [
+    {
+      value: csvLoading ? "Downloading..." : "Export All Leads Logs",
+      variant: "primary",
+      className:
+        "!bg-primary !text-white !border-primary hover:!bg-secondary hover:!border-secondary disabled:opacity-70",
+      disabled: csvLoading,
+      onClick: async () => {
+        try {
+          setCsvLoading(true);
+          await dispatch(exportLeadsCSV()).unwrap();
+        } finally {
+          setCsvLoading(false);
+        }
+      },
     },
-  },
-];
+  ];
   return (
     <div className="space-y-6">
       <PageHeader
         title="Lead Logs"
         description="Manage all incoming leads with search, filters, and pagination."
-         buttonsList={headerButtons}
+        buttonsList={headerButtons}
       />
 
       <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap gap-4">
@@ -262,7 +262,23 @@ const headerButtons = [
                       className="hover:bg-slate-50 cursor-pointer"
                     >
                       <td className="px-6 py-4">{lead.uniqueId}</td>
-                      <td className="px-6 py-4">{values.name || "-"}</td>
+                      <td className="px-6 py-4">
+                        <button
+                          className="hover:text-blue-500 px-6 py-4"
+
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/leads/${lead._id}?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/leads/${lead._id}?page=${page}`)
+                            }
+                          }
+                          }
+                        >
+                          {values.name || "-"}
+                        </button>
+                      </td>
                       <td className="px-6 py-4">{values.email || "-"}</td>
                       <td className="px-6 py-4">{values.phone || "-"}</td>
 
@@ -282,8 +298,8 @@ const headerButtons = [
                       <td className="px-6 py-4">
                         {lead.partnerIds?.length
                           ? lead.partnerIds.map((p, i) => (
-                              <div key={i}>{p.partnerId?.name}</div>
-                            ))
+                            <div key={i}>{p.partnerId?.name}</div>
+                          ))
                           : "-"}
                       </td>
 
@@ -331,7 +347,15 @@ const headerButtons = [
                       <td className="px-6 py-4 text-sm">
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                         onClick={() => navigate(`/leads/${lead._id}?page=${page}`)}
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/leads/${lead._id}?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/leads/${lead._id}?page=${page}`)
+                            }
+                          }
+                          }
                         >
                           <FaRegEye size={16} />
                         </button>
