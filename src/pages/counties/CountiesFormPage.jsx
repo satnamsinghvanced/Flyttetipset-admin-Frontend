@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { useNavigate, useParams , useSearchParams} from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import {
   clearSelectedCounty,
@@ -14,6 +14,13 @@ import { RiDeleteBin5Line } from "react-icons/ri";
 import ImageUploader from "../../UI/ImageUpload";
 import { getCompaniesAll } from "../../store/slices/companySlice";
 import ReactQuill from "react-quill-new";
+
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const quillModules = {
   toolbar: [
     [{ header: [1, 2, 3, false] }],
@@ -53,7 +60,7 @@ function labelFor(name) {
 
 const CountiesFormPage = () => {
   const { countyId } = useParams();
-     const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const isEditMode = Boolean(countyId);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -138,11 +145,13 @@ const CountiesFormPage = () => {
         icon: selectedCounty.icon || "",
 
         companies: Array.isArray(selectedCounty.companies)
-          ? selectedCounty.companies.map((c, index) => ({
-            companyId: String(c.companyId._id || c.companyId),
-            rank: c.rank ?? index + 1,
-            isRecommended: !!c.isRecommended,
-          }))
+          ? selectedCounty.companies
+            .filter((c) => c.companyId)
+            .map((c, index) => ({
+              companyId: String(c.companyId._id || c.companyId),
+              rank: c.rank ?? index + 1,
+              isRecommended: !!c.isRecommended,
+            }))
           : [],
 
         metaTitle: selectedCounty.metaTitle || "",
@@ -184,7 +193,7 @@ const CountiesFormPage = () => {
             },
       });
 
-      setPreviewImage(selectedCounty.icon || "");
+      setPreviewImage(fixImageUrl(selectedCounty.icon || ""));
     }
   }, [isEditMode, selectedCounty]);
 
@@ -335,7 +344,7 @@ const CountiesFormPage = () => {
         toast.success("County created!");
       }
 
-        const page = searchParams.get('page');
+      const page = searchParams.get('page');
       const redirectUrl = page ? `/counties?page=${page}` : "/counties";
       navigate(redirectUrl);
     } catch (err) {
@@ -364,14 +373,14 @@ const CountiesFormPage = () => {
               variant: "white",
               className:
                 "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-            onClick: () => {
+              onClick: () => {
                 const page = searchParams.get('page');
                 const redirectUrl = page ? `/counties?page=${page}` : "/counties";
                 navigate(redirectUrl);
               },
             },
           ],
-            [navigate, searchParams]
+          [navigate, searchParams]
         )}
       />
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { useNavigate, useParams,useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import PageHeader from "../../components/PageHeader";
 import ReactQuill from "react-quill-new";
 import "react-quill-new/dist/quill.snow.css";
@@ -15,6 +15,12 @@ import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
 import { getCompaniesAll } from "../../store/slices/companySlice";
 import { RiDeleteBin5Line } from "react-icons/ri";
+
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
 
 const quillModules = {
   toolbar: [
@@ -58,7 +64,7 @@ function labelFor(name) {
 
 const PlaceFormPage = () => {
   const { placeId } = useParams();
-     const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const isEditMode = Boolean(placeId);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -67,7 +73,6 @@ const PlaceFormPage = () => {
   const { counties } = useSelector((state) => state.counties);
   const { allCompanies } = useSelector((state) => state.companies);
   const [companySearch, setCompanySearch] = useState("");
-  // console.log(counties, "test");
   const [form, setForm] = useState({
     name: "",
     countyId: "",
@@ -76,7 +81,6 @@ const PlaceFormPage = () => {
     title: "",
     description: "",
     icon: "",
-    // isRecommended: false,
     rank: 0,
     companies: [],
     metaTitle: "",
@@ -143,14 +147,15 @@ const PlaceFormPage = () => {
         title: selectedPlace.title || "",
         description: selectedPlace.description || "",
         icon: selectedPlace.icon || "",
-        // isRecommended: selectedPlace.isRecommended || false,
         rank: selectedPlace.rank || 0,
         companies: Array.isArray(selectedPlace.companies)
-          ? selectedPlace.companies.map((c, index) => ({
-            companyId: String(c.companyId._id || c.companyId),
-            rank: c.rank ?? index + 1,
-            isRecommended: !!c.isRecommended,
-          }))
+          ? selectedPlace.companies
+            .filter((c) => c.companyId)
+            .map((c, index) => ({
+              companyId: String(c.companyId._id || c.companyId),
+              rank: c.rank ?? index + 1,
+              isRecommended: !!c.isRecommended,
+            }))
           : [],
         metaTitle: selectedPlace.metaTitle || "",
         metaDescription: selectedPlace.metaDescription || "",
@@ -164,15 +169,9 @@ const PlaceFormPage = () => {
         ogDescription: selectedPlace.ogDescription || "",
         ogImage: selectedPlace.ogImage || "",
         ogType: selectedPlace.ogType || "website",
-
-        // publishedDate: selectedPlace.publishedDate ||"",
-        // lastUpdatedDate: selectedPlace.lastUpdatedDate ||"",
-        // showPublishedDate: selectedPlace.showPublishedDate ||false,
-        // showLastUpdatedDate: selectedPlace.showLastUpdatedDate ||false,
-
         robots: selectedPlace.robots,
       });
-      setPreviewImage(selectedPlace.icon || "");
+      setPreviewImage(fixImageUrl(selectedPlace.icon || ""));
     }
   }, [isEditMode, selectedPlace]);
 
@@ -209,8 +208,6 @@ const PlaceFormPage = () => {
     const file = event.target.files?.[0];
     setImageFile(file || null);
     setPreviewImage(file ? URL.createObjectURL(file) : "");
-
-    // update form.icon to the new file (or URL if already uploaded)
     setForm((prev) => ({
       ...prev,
       icon: file ? URL.createObjectURL(file) : "",
@@ -224,7 +221,6 @@ const PlaceFormPage = () => {
     title: form.title || "",
     icon: form.icon || "",
     description: form.description || "",
-    // isRecommended: form.isRecommended ,
     rank: Number(form.rank) || 0,
     companies: form.companies.map((c, index) => ({
       companyId: c.companyId,
@@ -243,8 +239,6 @@ const PlaceFormPage = () => {
     ogDescription: form.ogDescription?.trim() || "",
     ogImage: form.ogImage || "",
     ogType: form.ogType || "website",
-
-    // Robots
     robots: {
       noindex: !!form.robots.noindex,
       nofollow: !!form.robots.nofollow,
@@ -270,7 +264,6 @@ const PlaceFormPage = () => {
       let isFormData = false;
 
       if (imageFile) {
-        // Use FormData when uploading a file
         isFormData = true;
         payload = new FormData();
         payload.append("name", form.name);
@@ -281,11 +274,7 @@ const PlaceFormPage = () => {
         payload.append("description", form.description);
         payload.append("rank", form.rank);
         payload.append("icon", imageFile);
-
-        // Append companies as JSON string
         payload.append("companies", JSON.stringify(form.companies));
-
-        // SEO and OG
         payload.append("metaTitle", form.metaTitle);
         payload.append("metaDescription", form.metaDescription);
         payload.append("metaKeywords", form.metaKeywords);
@@ -296,33 +285,28 @@ const PlaceFormPage = () => {
         payload.append("ogDescription", form.ogDescription);
         payload.append("ogImage", form.ogImage);
         payload.append("ogType", form.ogType);
-
-        // Robots
         payload.append("robots", JSON.stringify(form.robots));
       } else {
-        // No file: normal JSON payload
         payload = buildPayload();
       }
 
       if (isEditMode) {
         await dispatch(
-          updatePlace({ id: placeId, placeData: payload, isFormData })
+          updatePlace({ id: placeId, placeData: payload, isFormData }),
         ).unwrap();
         toast.success("Place updated!");
       } else {
-        await dispatch(
-          createPlace({ data: payload, isFormData })
-        ).unwrap();
+        await dispatch(createPlace({ data: payload, isFormData })).unwrap();
         toast.success("Place created!");
       }
 
-      const page = searchParams.get('page');
+      const page = searchParams.get("page");
       const redirectUrl = page ? `/places?page=${page}` : "/places";
       navigate(redirectUrl);
     } catch (err) {
       console.error(err);
       toast.error(
-        err?.data?.message || err?.message || "Failed to save the place."
+        err?.data?.message || err?.message || "Failed to save the place.",
       );
     } finally {
       setSubmitting(false);
@@ -348,14 +332,14 @@ const PlaceFormPage = () => {
               variant: "white",
               className:
                 "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-             onClick: () => {
-                const page = searchParams.get('page');
+              onClick: () => {
+                const page = searchParams.get("page");
                 const redirectUrl = page ? `/places?page=${page}` : "/places";
                 navigate(redirectUrl);
               },
             },
           ],
-          [navigate, searchParams]
+          [navigate, searchParams],
         )}
       />
 
@@ -424,8 +408,6 @@ const PlaceFormPage = () => {
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Companies <span className="text-red-500">*</span>
               </label>
-
-              {/* Trigger Button */}
               <div
                 className="w-full border border-slate-200 rounded-xl px-3 py-2 mt-1 cursor-pointer"
                 onClick={() => setShowCompaniesDropdown((prev) => !prev)}
@@ -438,9 +420,8 @@ const PlaceFormPage = () => {
                   <div className="flex flex-wrap gap-2">
                     {form.companies.map((item) => {
                       const company = allCompanies.find(
-                        (c) => c._id === item.companyId
+                        (c) => c._id === item.companyId,
                       );
-                      // console.log(company)
                       return (
                         <span
                           key={item.companyId}
@@ -454,7 +435,7 @@ const PlaceFormPage = () => {
                               setForm((prev) => ({
                                 ...prev,
                                 companies: prev.companies.filter(
-                                  (x) => x !== item
+                                  (x) => x !== item,
                                 ),
                               }));
                             }}
@@ -469,10 +450,8 @@ const PlaceFormPage = () => {
                 )}
               </div>
 
-              {/* Dropdown */}
               {showCompaniesDropdown && (
                 <div className="z-20 mt-2 w-full max-h-64 overflow-y-auto bg-white border rounded-xl shadow p-2">
-                  {/* Search input */}
                   <input
                     type="text"
                     placeholder="Search companies..."
@@ -480,13 +459,11 @@ const PlaceFormPage = () => {
                     onChange={(e) => setCompanySearch(e.target.value)}
                     className="w-full mb-2 rounded border px-2 py-1 text-sm outline-none focus:border-primary"
                   />
-
-                  {/* Filtered list */}
                   {allCompanies
                     ?.filter((c) =>
                       c.companyName
                         .toLowerCase()
-                        .includes(companySearch.toLowerCase())
+                        .includes(companySearch.toLowerCase()),
                     )
                     .map((company) => (
                       <label
@@ -497,7 +474,7 @@ const PlaceFormPage = () => {
                           type="checkbox"
                           className="!relative"
                           checked={form.companies.some(
-                            (c) => c.companyId === company._id
+                            (c) => c.companyId === company._id,
                           )}
                           onChange={(e) => {
                             let updated = [...form.companies];
@@ -513,7 +490,7 @@ const PlaceFormPage = () => {
                               });
                             } else {
                               updated = updated.filter(
-                                (c) => c.companyId !== company._id
+                                (c) => c.companyId !== company._id,
                               );
                             }
                             setForm((prev) => ({
@@ -533,7 +510,7 @@ const PlaceFormPage = () => {
               <div className="space-y-2">
                 {form.companies.map((item, index) => {
                   const company = allCompanies.find(
-                    (c) => c._id === item.companyId
+                    (c) => c._id === item.companyId,
                   );
 
                   return (
@@ -545,8 +522,6 @@ const PlaceFormPage = () => {
                         <span className="text-sm font-medium">
                           {index + 1}. {company?.companyName}
                         </span>
-
-                        {/* Recommended */}
                         <label className="flex items-center gap-1 text-xs">
                           <input
                             type="checkbox"
@@ -565,8 +540,6 @@ const PlaceFormPage = () => {
                           Recommended
                         </label>
                       </div>
-
-                      {/* Reorder */}
                       <div className="flex gap-1">
                         <button
                           type="button"
@@ -609,41 +582,6 @@ const PlaceFormPage = () => {
                 })}
               </div>
             </div>
-
-            {/* <div className="md:col-span-2">
-              <label
-                htmlFor="isRecommended-toggle"
-                className="flex items-center cursor-pointer pt-2"
-              >
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    name="isRecommended"
-                    checked={form.isRecommended}
-                    onChange={handleChange}
-                    id="isRecommended-toggle"
-                    className="sr-only"
-                  />
-
-                  <div
-                    className={`w-11 h-6 rounded-full shadow-inner transition-colors duration-300 ease-in-out ${
-                      form.isRecommended ? "bg-primary" : "bg-slate-300"
-                    }`}
-                  ></div>
-
-                  <div
-                    className={`dot absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform duration-300 ease-in-out ${
-                      form.isRecommended ? "translate-x-full" : "translate-x-0"
-                    }`}
-                  ></div>
-                </div>
-
-                <span className="ml-3 text-sm font-semibold text-slate-700 uppercase tracking-wide">
-                  Recommended Place
-                </span>
-              </label>
-            </div> */}
-
             <div className="md:col-span-2">
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Excerpt
@@ -661,13 +599,10 @@ const PlaceFormPage = () => {
           <div className="mt-4">
             <label className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
               Description
-              {/* Tooltip */}
               <span className="relative flex items-center group">
                 <span className="flex h-4 w-4 items-center justify-center rounded-full border border-slate-300 text-[10px] font-bold text-slate-500 cursor-pointer select-none">
                   i
                 </span>
-
-                {/* Tooltip content */}
                 <span className="pointer-events-none absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-normal text-white opacity-0 shadow-xl transition-opacity duration-200 group-hover:opacity-100">
                   Please use <i>##</i> for H2 tags and <i>#</i> for H3 tags. The
                   remaining text should stay unchanged, and please ensure the
@@ -710,6 +645,7 @@ const PlaceFormPage = () => {
                     onClick={() => {
                       setImageFile(null);
                       setPreviewImage("");
+                      setForm((prev) => ({ ...prev, icon: "" }));
                     }}
                     title="Remove image"
                   >
@@ -731,11 +667,9 @@ const PlaceFormPage = () => {
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-6 mt-6">
-            {/* SEO SECTION */}
             <div className="pt-6">
               <h2 className="text-xl font-bold mb-4">SEO Settings</h2>
 
-              {/* Meta Title */}
               <label className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Meta Title
               </label>
@@ -746,8 +680,6 @@ const PlaceFormPage = () => {
                   setForm({ ...form, metaTitle: e.target.value })
                 }
               />
-
-              {/* Meta Description */}
               <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Meta Description
               </label>
@@ -759,7 +691,6 @@ const PlaceFormPage = () => {
                 }
               />
 
-              {/* Keywords */}
               <label className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">
                 Meta Keywords (comma separated)
               </label>
@@ -771,15 +702,12 @@ const PlaceFormPage = () => {
                 }
               />
 
-              {/* Meta Image */}
               <ImageUploader
                 label="Meta Image"
                 value={form.metaImage}
                 onChange={(img) => setForm({ ...form, metaImage: img })}
               />
             </div>
-
-            {/* OG TAGS */}
             <div className="border-t pt-6">
               <h2 className="text-xl font-bold mb-4">Open Graph (OG) Tags</h2>
 
@@ -818,8 +746,6 @@ const PlaceFormPage = () => {
                 onChange={(e) => setForm({ ...form, ogType: e.target.value })}
               />
             </div>
-
-            {/* ADVANCED SEO */}
             <div className="border-t pt-6">
               <h2 className="text-xl font-bold mb-4">Advanced SEO</h2>
 
@@ -854,8 +780,6 @@ const PlaceFormPage = () => {
                 }
               />
             </div>
-
-            {/* ROBOTS SETTINGS */}
             <div className="border-t pt-6">
               <h2 className="text-xl font-bold mb-4">Robots Settings</h2>
 
