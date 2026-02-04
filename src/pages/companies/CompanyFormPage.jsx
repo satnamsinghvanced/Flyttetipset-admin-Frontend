@@ -15,6 +15,12 @@ import { uploadImage } from "../../store/slices/imageUpload";
 import { toast } from "react-toastify";
 import ImageUploader from "../../UI/ImageUpload";
 
+const IMAGE_URL = import.meta.env.VITE_API_URL_IMAGE;
+const fixImageUrl = (url) => {
+  if (!url || typeof url !== "string") return url;
+  return url.startsWith("http") ? url : `${IMAGE_URL}${url.startsWith("/") ? "" : "/"}${url}`;
+};
+
 const quillModules = {
   toolbar: [
     [{ header: [1, 2, 3, false] }],
@@ -51,7 +57,7 @@ const requiredFields = [
 
 const CompanyFormPage = () => {
   const { companyId } = useParams();
-      const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const isEditMode = Boolean(companyId);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -178,7 +184,7 @@ const CompanyFormPage = () => {
 
         robots: selectedCompany.robots,
       });
-      setPreviewImage(selectedCompany.companyImage || "");
+      setPreviewImage(fixImageUrl(selectedCompany.companyImage || ""));
     }
   }, [isEditMode, selectedCompany]);
 
@@ -297,21 +303,21 @@ const CompanyFormPage = () => {
       companyImage: form.companyImage || "",
       extractor: form.extractor
         ? form.extractor
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [],
       brokerSites: form.brokerSites
         ? form.brokerSites
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [],
       features: form.features
         ? form.features
-            .split(",")
-            .map((s) => s.trim())
-            .filter(Boolean)
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
         : [],
       metaTitle: form.metaTitle?.trim() || "",
       metaDescription: form.metaDescription?.trim() || "",
@@ -402,14 +408,14 @@ const CompanyFormPage = () => {
               variant: "white",
               className:
                 "border border-slate-300 text-slate-700 hover:border-slate-400 hover:bg-white",
-                onClick: () => {
+              onClick: () => {
                 const page = searchParams.get('page');
                 const redirectUrl = page ? `/companies?page=${page}` : "/companies";
                 navigate(redirectUrl);
               },
             },
           ],
-         [navigate, searchParams]
+          [navigate, searchParams]
         )}
       />
 
@@ -441,10 +447,9 @@ const CompanyFormPage = () => {
                   value={form[field.name] ?? ""}
                   onChange={handleChange}
                   className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm text-slate-900 outline-none transition
-                    ${
-                      errors[field.name]
-                        ? "border-red-400 focus:border-red-500"
-                        : "border-slate-200 focus:border-primary"
+                    ${errors[field.name]
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-slate-200 focus:border-primary"
                     }`}
                 />
                 {errors[field.name] && (
@@ -557,9 +562,8 @@ const CompanyFormPage = () => {
                       typeof previewImage === "string"
                         ? previewImage.startsWith("http")
                           ? previewImage
-                          : `${
-                              import.meta.env.VITE_API_URL_IMAGE
-                            }/${previewImage.replace(/^\//, "")}`
+                          : `${import.meta.env.VITE_API_URL_IMAGE
+                          }/${previewImage.replace(/^\//, "")}`
                         : ""
                     }
                     alt="Preview"
@@ -757,8 +761,8 @@ const CompanyFormPage = () => {
               {submitting
                 ? "Saving..."
                 : isEditMode
-                ? "Save Changes"
-                : "Create Company"}
+                  ? "Save Changes"
+                  : "Create Company"}
             </button>
 
             {isDisabled && (
@@ -766,8 +770,8 @@ const CompanyFormPage = () => {
                 {isUploading
                   ? "Please wait companyImage is uploading..."
                   : hasErrors
-                  ? "Please fill all required fields to enable Save"
-                  : ""}
+                    ? "Please fill all required fields to enable Save"
+                    : ""}
               </p>
             )}
           </div>
