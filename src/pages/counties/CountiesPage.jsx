@@ -14,12 +14,11 @@ import { getCounties, deleteCounty } from "../../store/slices/countySlice";
 export const CountyPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { counties, loading, error } = useSelector((state) => state.counties);
-
-  // Initialize page from URL
   const getInitialPage = () => {
-    const pageParam = searchParams.get('page');
+    const pageParam = searchParams.get("page");
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
   };
 
@@ -30,7 +29,6 @@ export const CountyPage = () => {
   const [countyToDelete, setCountyToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Fetch counties with search support
   const fetchCounties = useCallback(async () => {
     try {
       const res = await dispatch(getCounties({ page, limit, search })).unwrap();
@@ -42,7 +40,7 @@ export const CountyPage = () => {
 
   // Update page when URL changes
   useEffect(() => {
-    const pageParam = searchParams.get('page');
+    const pageParam = searchParams.get("page");
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
@@ -51,7 +49,7 @@ export const CountyPage = () => {
 
   // Update URL when page changes (but not when initializing)
   useEffect(() => {
-    const pageParam = searchParams.get('page');
+    const pageParam = searchParams.get("page");
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (page !== currentPageInUrl) {
       if (page > 1) {
@@ -61,15 +59,9 @@ export const CountyPage = () => {
       }
     }
   }, [page, searchParams, setSearchParams]);
-
   useEffect(() => {
     fetchCounties();
   }, [fetchCounties]);
-
-  useEffect(() => {
-    fetchCounties();
-  }, [fetchCounties]);
-
 
   const handleDeleteCounty = async () => {
     if (!countyToDelete) return;
@@ -107,7 +99,9 @@ export const CountyPage = () => {
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between px-6 py-4 gap-3">
           <div>
-            <p className="text-sm font-semibold text-slate-900">Counties overview</p>
+            <p className="text-sm font-semibold text-slate-900">
+              Counties overview
+            </p>
             <p className="text-xs text-slate-500">
               {loading ? "Loading..." : `${totalCounties} items`}
             </p>
@@ -150,7 +144,10 @@ export const CountyPage = () => {
                 ))
               ) : error ? (
                 <tr>
-                  <td colSpan="4" className="px-6 py-6 text-center text-red-500">
+                  <td
+                    colSpan="4"
+                    className="px-6 py-6 text-center text-red-500"
+                  >
                     {error}
                   </td>
                 </tr>
@@ -170,8 +167,7 @@ export const CountyPage = () => {
                           } else {
                             navigate(`/county/${county._id}?page=${page}`)
                           }
-                        }
-                        }
+                        }}
                       >
                         {county.name}
                       </button>
@@ -189,15 +185,21 @@ export const CountyPage = () => {
                             } else {
                               navigate(`/county/${county._id}?page=${page}`)
                             }
-                          }
-                          }
+                          }}
                           title="Preview"
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/county/${county._id}/Edit?page=${page}`)}
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/county/${county._id}/edit?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/county/${county._id}/edit?page=${page}`)
+                            }
+                          }}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>

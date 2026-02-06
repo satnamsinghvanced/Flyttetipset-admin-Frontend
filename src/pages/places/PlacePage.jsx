@@ -1,15 +1,15 @@
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AiTwotoneEdit } from "react-icons/ai";
-import { RiDeleteBin5Line } from "react-icons/ri";
-import { LuFileUp, LuPlus } from "react-icons/lu";
 import { FaRegEye } from "react-icons/fa";
-import { toast } from "react-toastify";
+import { LuFileUp, LuPlus } from "react-icons/lu";
+import { RiDeleteBin5Line } from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router";
+import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
-import Pagination from "../../UI/pagination";
 import { ROUTES } from "../../consts/routes";
-import { getPlaces, importPlaces, deletePlace } from "../../store/slices/placeSlice";
+import { deletePlace, getPlaces, importPlaces } from "../../store/slices/placeSlice";
+import Pagination from "../../UI/pagination";
 
 export const Places = () => {
   const dispatch = useDispatch();
@@ -17,6 +17,7 @@ export const Places = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const fileInputRef = useRef(null);
   const { places, loading, error } = useSelector((state) => state.places);
+
   // Initialize page from URL
   const getInitialPage = () => {
     const pageParam = searchParams.get('page');
@@ -24,8 +25,6 @@ export const Places = () => {
   };
 
   const [page, setPage] = useState(getInitialPage);
-
-
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -78,6 +77,7 @@ export const Places = () => {
       setShowDeleteModal(false);
       fetchPlaces();
     } catch (err) {
+      console.error("Failed to delete:", err);
       toast.error("Failed to delete");
     }
   };
@@ -88,7 +88,7 @@ export const Places = () => {
     return fileName.endsWith(".csv") || fileName.endsWith(".xlsx");
   };
 
-  const handleImportPlaces = async () => {
+  const handleImportPlaces = useCallback(async () => {
     if (!uploadFile) return toast.error("Select a file first");
 
     setShowUploadingFileLoader(true);
@@ -115,15 +115,16 @@ export const Places = () => {
       if (fileInputRef.current) fileInputRef.current.value = "";
       fetchPlaces();
     } catch (err) {
+      console.error("Import failed:", err);
       toast.error("Import failed");
     } finally {
       setShowUploadingFileLoader(false);
     }
-  };
+  }, [uploadFile, dispatch, fetchPlaces]);
 
   useEffect(() => {
     if (uploadFile) handleImportPlaces();
-  }, [uploadFile]);
+  }, [uploadFile, handleImportPlaces]);
 
   const headerButtons = [
     {
@@ -235,16 +236,16 @@ export const Places = () => {
                     <td className="px-6 py-4 text-slate-500">{(page - 1) * limit + index + 1}</td>
                     <td className="font-medium text-slate-900">
                       <button
-                        className="hover:text-blue-500 px-6 py-4"
-                        onClick={(e) => {
-                          if (e.ctrlKey || e.metaKey || e.button === 1) {
+                        className="px-6 py-4 text-start hover:text-blue-500"
+                        onClick={(E) => {
+                          if (E.ctrlKey || E.metaKey || E.button === 1) {
                             window.open(`/place/${place._id}?page=${page}`, "_blank");
                             return;
                           } else {
                             navigate(`/place/${place._id}?page=${page}`)
                           }
-                        }
-                        }
+                        }}
+                        title="Preview"
                       >
                         {place.name}
                       </button>
@@ -264,22 +265,28 @@ export const Places = () => {
 
                         <button
                           className="rounded-full border border-slate-200 p-2 text-slate-500 hover:text-slate-900"
-                          onClick={(e) => {
-                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                          onClick={(E) => {
+                            if (E.ctrlKey || E.metaKey || E.button === 1) {
                               window.open(`/place/${place._id}?page=${page}`, "_blank");
                               return;
                             } else {
                               navigate(`/place/${place._id}?page=${page}`)
                             }
-                          }
-                          }
+                          }}
                           title="Preview"
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/place/${place._id}/Edit?page=${page}`)}
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/place/${place._id}/edit?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/place/${place._id}/edit?page=${page}`)
+                            }
+                          }}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>

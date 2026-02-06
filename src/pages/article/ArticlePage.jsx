@@ -1,14 +1,14 @@
-import { useEffect, useState, useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useCallback, useEffect, useState } from "react";
 import { AiTwotoneEdit } from "react-icons/ai";
-import { RiDeleteBin5Line } from "react-icons/ri";
 import { FaRegEye } from "react-icons/fa";
 import { LuPlus } from "react-icons/lu";
-import { toast } from "react-toastify";
+import { RiDeleteBin5Line } from "react-icons/ri";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router";
+import { toast } from "react-toastify";
 import PageHeader from "../../components/PageHeader";
+import { deleteArticle, getArticles } from "../../store/slices/articleSlice";
 import Pagination from "../../UI/pagination";
-import { getArticles, deleteArticle } from "../../store/slices/articleSlice";
 
 const ArticlePage = () => {
   const dispatch = useDispatch();
@@ -21,7 +21,6 @@ const ArticlePage = () => {
     const pageParam = searchParams.get('page');
     return pageParam ? parseInt(pageParam, 10) || 1 : 1;
   };
-
   const [page, setPage] = useState(getInitialPage);
   const [limit] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -29,7 +28,6 @@ const ArticlePage = () => {
   const [articleToDelete, setArticleToDelete] = useState(null);
   const [search, setSearch] = useState("");
 
-  // Fetch articles with search support
   const fetchArticles = useCallback(async () => {
     try {
       const res = await dispatch(getArticles({ page, limit, search })).unwrap();
@@ -39,18 +37,15 @@ const ArticlePage = () => {
     }
   }, [dispatch, page, limit, search]);
 
-  // Update page when URL changes
   useEffect(() => {
-    const pageParam = searchParams.get('page');
+    const pageParam = searchParams.get("page");
     const newPage = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (newPage !== page) {
       setPage(newPage);
     }
-  }, [searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Update URL when page changes (but not when initializing)
+  }, [searchParams]);
   useEffect(() => {
-    const pageParam = searchParams.get('page');
+    const pageParam = searchParams.get("page");
     const currentPageInUrl = pageParam ? parseInt(pageParam, 10) || 1 : 1;
     if (page !== currentPageInUrl) {
       if (page > 1) {
@@ -60,10 +55,9 @@ const ArticlePage = () => {
       }
     }
   }, [page, searchParams, setSearchParams]);
-
   useEffect(() => {
     fetchArticles();
-  }, [fetchArticles]);// <-- seaarch dependency added
+  }, [fetchArticles]);
 
   const handleDeleteArticle = async () => {
     if (!articleToDelete) return;
@@ -107,13 +101,12 @@ const ArticlePage = () => {
             </p>
           </div>
 
-          {/* Search Input */}
           <input
             type="text"
             placeholder="Search articles..."
             value={search}
             onChange={(e) => {
-              setPage(1); // reset to first page on new search
+              setPage(1);
               setSearch(e.target.value);
             }}
             className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -157,6 +150,7 @@ const ArticlePage = () => {
                     <td className="font-medium text-slate-900">
                       <button
                         className="hover:text-blue-500 px-6 py-4"
+
                         onClick={(e) => {
                           if (e.ctrlKey || e.metaKey || e.button === 1) {
                             window.open(`/articles/${article._id}?page=${page}`, "_blank");
@@ -164,8 +158,7 @@ const ArticlePage = () => {
                           } else {
                             navigate(`/articles/${article._id}?page=${page}`)
                           }
-                        }
-                        }
+                        }}
                       >
                         {article.title}
                       </button>
@@ -184,14 +177,20 @@ const ArticlePage = () => {
                             } else {
                               navigate(`/articles/${article._id}?page=${page}`)
                             }
-                          }
-                          }
+                          }}
                         >
                           <FaRegEye size={16} />
                         </button>
                         <button
                           className="rounded-full border p-2 text-slate-500 hover:text-slate-900"
-                          onClick={() => navigate(`/articles/${article._id}/edit?page=${page}`)}
+                          onClick={(e) => {
+                            if (e.ctrlKey || e.metaKey || e.button === 1) {
+                              window.open(`/articles/${article._id}/edit?page=${page}`, "_blank");
+                              return;
+                            } else {
+                              navigate(`/articles/${article._id}/edit?page=${page}`)
+                            }
+                          }}
                         >
                           <AiTwotoneEdit size={16} />
                         </button>
