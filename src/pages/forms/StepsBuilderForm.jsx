@@ -301,6 +301,7 @@ const StepsBuilderForm = ({ form, onBack }) => {
               <option value="checkbox">Checkbox</option>
               <option value="radio">Radio</option>
               <option value="file">File</option>
+              <option value="calendar">Calendar</option>
             </select>
 
             {!["checkbox", "radio"].includes(field.type) && (

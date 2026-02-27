@@ -415,6 +415,7 @@ const AdminFormBuilderSelect = () => {
                                       <option value="dropdown">Dropdown</option>
                                       <option value="checkbox">Checkbox</option>
                                       <option value="radio">Radio</option>
+                                      <option value="calendar">Calendar</option>
                                     </select>
                                   </div>
 
