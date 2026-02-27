@@ -465,6 +465,7 @@ const AdminFormBuilder = () => {
                                           Checkbox
                                         </option>
                                         <option value="radio">Radio</option>
+                                        <option value="calendar">Calendar</option>
                                       </select>
                                     </div>
 
