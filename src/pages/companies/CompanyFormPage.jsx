@@ -279,7 +279,7 @@ const CompanyFormPage = () => {
       setPreviewImage(imageUrl);
     } catch (err) {
       console.error("Image upload error:", err);
-      toast.error(err?.message || "Failed to upload companyImage");
+      // Already toasted by axios interceptor in most cases
     } finally {
       setIsUploading(false);
     }
@@ -381,9 +381,7 @@ const CompanyFormPage = () => {
       navigate(redirectUrl);
     } catch (err) {
       console.error(err);
-      toast.error(
-        err?.data?.message || err?.message || "Failed to save the company."
-      );
+      // Removed toast.error because axios interceptor handles it globally
     } finally {
       setSubmitting(false);
     }

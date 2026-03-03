@@ -115,7 +115,8 @@ export const Company = () => {
       });
       dispatch(getCompanies({ page, limit }));
     } catch (err) {
-      toast.error("Failed to add company");
+      // Already toasted by axios interceptor
+      console.error("Failed to add company:", err);
     }
   };
   const isValidFileExtension = (file) => {
@@ -159,8 +160,8 @@ export const Company = () => {
 
       dispatch(getCompanies({ page, limit }));
     } catch (err) {
-      console.error(err);
-      toast.error("Import failed");
+      console.error("Import failed:", err);
+      // Already toasted by axios interceptor
     } finally {
       setShowUploadingFileLoader(false);
     }
