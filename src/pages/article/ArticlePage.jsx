@@ -67,7 +67,7 @@ const ArticlePage = () => {
       fetchArticles();
       toast.success("Article deleted successfully");
     } catch (err) {
-      toast.error("Failed to delete article");
+      console.log(err);
     }
   };
 

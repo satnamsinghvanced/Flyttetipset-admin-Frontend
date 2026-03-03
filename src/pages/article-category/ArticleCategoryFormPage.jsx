@@ -200,9 +200,6 @@ const ArticleCategoryFormPage = () => {
       navigate("/article-categories");
     } catch (err) {
       console.error(err);
-      toast.error(
-        err?.data?.message || err?.message || "Failed to save the category."
-      );
     } finally {
       setSubmitting(false);
     }
@@ -265,10 +262,9 @@ const ArticleCategoryFormPage = () => {
                   value={form[field.name] ?? ""}
                   onChange={handleChange}
                   className={`mt-1 w-full rounded-xl border px-3 py-2 text-sm text-slate-900 outline-none transition
-                    ${
-                      errors[field.name]
-                        ? "border-red-400 focus:border-red-500"
-                        : "border-slate-200 focus:border-primary"
+                    ${errors[field.name]
+                      ? "border-red-400 focus:border-red-500"
+                      : "border-slate-200 focus:border-primary"
                     }`}
                 />
                 {errors[field.name] && (
@@ -435,8 +431,8 @@ const ArticleCategoryFormPage = () => {
               {submitting
                 ? "Saving..."
                 : isEditMode
-                ? "Save Changes"
-                : "Create Category"}
+                  ? "Save Changes"
+                  : "Create Category"}
             </button>
 
             {isDisabled && hasErrors && (

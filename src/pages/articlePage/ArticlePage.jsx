@@ -108,11 +108,12 @@ const ArticleUIPage = () => {
   };
 
   const handleSave = async () => {
-    const res = await dispatch(updateArticlePage(form));
-
-    res?.payload
-      ? toast.success("Article Page Updated Successfully!")
-      : toast.error("Failed to update Article Page");
+    try {
+      await dispatch(updateArticlePage(form)).unwrap();
+      toast.success("Article Page Updated Successfully!");
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

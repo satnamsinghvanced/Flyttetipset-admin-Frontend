@@ -238,9 +238,6 @@ const ArticleFormPage = () => {
       }
     } catch (err) {
       console.error(err);
-      toast.error(
-        err?.data?.message || err?.message || "Failed to save the article."
-      );
     } finally {
       setSubmitting(false);
     }

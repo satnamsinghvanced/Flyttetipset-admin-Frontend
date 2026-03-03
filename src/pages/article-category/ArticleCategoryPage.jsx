@@ -42,7 +42,7 @@ export const ArticleCategoryPage = () => {
       fetchCategories();
       // toast.success("Category deleted successfully");
     } catch (err) {
-      toast.error("Failed to delete");
+      console.error(err);
     }
   };
 
