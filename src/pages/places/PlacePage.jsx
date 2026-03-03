@@ -78,7 +78,6 @@ export const Places = () => {
       fetchPlaces();
     } catch (err) {
       console.error("Failed to delete:", err);
-      toast.error("Failed to delete");
     }
   };
 
@@ -116,7 +115,6 @@ export const Places = () => {
       fetchPlaces();
     } catch (err) {
       console.error("Import failed:", err);
-      toast.error("Import failed");
     } finally {
       setShowUploadingFileLoader(false);
     }

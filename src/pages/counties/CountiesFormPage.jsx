@@ -348,7 +348,7 @@ const CountiesFormPage = () => {
       const redirectUrl = page ? `/counties?page=${page}` : "/counties";
       navigate(redirectUrl);
     } catch (err) {
-      toast.error(err?.data?.message || err.message);
+      console.error(err);
     } finally {
       setSubmitting(false);
     }

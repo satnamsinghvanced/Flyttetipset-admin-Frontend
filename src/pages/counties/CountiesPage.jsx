@@ -71,7 +71,7 @@ export const CountyPage = () => {
       setShowDeleteModal(false);
       fetchCounties();
     } catch (err) {
-      toast.error("Failed to delete county");
+      console.error(err);
     }
   };
 

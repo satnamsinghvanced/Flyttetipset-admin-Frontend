@@ -305,9 +305,6 @@ const PlaceFormPage = () => {
       navigate(redirectUrl);
     } catch (err) {
       console.error(err);
-      toast.error(
-        err?.data?.message || err?.message || "Failed to save the place.",
-      );
     } finally {
       setSubmitting(false);
     }
